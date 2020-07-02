@@ -6,6 +6,7 @@ import com.musinsa.jglee.dto.response.GetShortUrlRedirectCountResponseDTO;
 import com.musinsa.jglee.schema.ShortUrl;
 import io.seruco.encoding.base62.Base62;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,7 +15,8 @@ import java.nio.ByteBuffer;
 @Service
 public class ShortUrlService {
     private final ShortUrlDAO shortUrlDAO;
-    private final String REDIRECT_URL = "http://localhost:9009/musinsa/";
+    @Value("${redirect.base.url}")
+    private String REDIRECT_BASE_URL;
 
     @Autowired
     public ShortUrlService(ShortUrlDAO shortUrlDAO) {
@@ -35,7 +37,7 @@ public class ShortUrlService {
         }
 
         createShortUrlResponseDTO.setCode(0);
-        createShortUrlResponseDTO.setShortUrl(REDIRECT_URL + shortUrl.getShorteningKey());
+        createShortUrlResponseDTO.setShortUrl(REDIRECT_BASE_URL + shortUrl.getShorteningKey());
         createShortUrlResponseDTO.setRedirectCount(shortUrl.getRedirectCount());
         return createShortUrlResponseDTO;
     }
