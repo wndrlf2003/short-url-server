@@ -1,62 +1,88 @@
 package com.musinsa.jglee;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.musinsa.jglee.dto.request.CreateShortUrlRequestDTO;
+import com.musinsa.jglee.dto.response.CreateShortUrlResponseDTO;
+import com.musinsa.jglee.dto.response.GetShortUrlRedirectCountResponseDTO;
 import com.musinsa.jglee.service.ShortUrlService;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import static org.springframework.test.util.AssertionErrors.assertEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @SpringBootTest
+@AutoConfigureMockMvc
 class ShortUrlControllerTests {
-	private final ShortUrlService shortUrlService;
+	private final MockMvc mockMvc;
 
 	@Autowired
-	public ShortUrlControllerTests(ShortUrlService shortUrlService) {
-		this.shortUrlService = shortUrlService;
+	public ShortUrlControllerTests(MockMvc mockMvc) {
+		this.mockMvc = mockMvc;
+	}
+
+	@Test()
+	void createdShortUrlCallTest() throws Exception {
+		mockMvc.perform(MockMvcRequestBuilders.post("/short-url").content("{\"url\":\"https://wndrlf2003.blog.me\"}").contentType("application/json"))
+				.andExpect(MockMvcResultMatchers.status().isOk())
+				.andDo(MockMvcResultHandlers.print());
 	}
 
 	@Test
-	void GenerateShorteningKeyLengthTest() {
-		// Given
-		long lastLengthNumber = 218340105584895L;
-		long overLengthNumber = 218340105584896L;
-
-		// When
-		String lastLengthNumberKey = shortUrlService.CreateShorteningKey(lastLengthNumber);
-		String overLengthNumberKey = shortUrlService.CreateShorteningKey(overLengthNumber);
-
-		// Then
-		assertEquals("base62 encode fail", lastLengthNumberKey, "zzzzzzzz");
-		assertEquals("base62 encode size", lastLengthNumberKey.length(), 8);
-		assertEquals("base62 encode fail", overLengthNumberKey, "100000000");
-		assertEquals("base62 encode size", overLengthNumberKey.length(), 9);
+	void getShortUrlRedirectCountCallTest() throws Exception {
+		mockMvc.perform(MockMvcRequestBuilders.get("/short-url/redirect-count?shorteningKey=1"))
+				.andExpect(MockMvcResultMatchers.status().isOk())
+				.andDo(MockMvcResultHandlers.print());
 	}
 
-	@Test
-	void AddShortUrlTest() {
-		// Given
+	@Test // short url 생성 후 shorteningKey 로 카운트 조회 테스트
+	void givenCreatedShortUrl_whenGetShortUrlRedirectCount_thenSuccess() throws Exception {
+		mockMvc.perform(MockMvcRequestBuilders.post("/short-url").content("{\"url\":\"https://wndrlf2003.blog.me\"}").contentType("application/json"))
+				.andExpect(MockMvcResultMatchers.status().isOk())
+				.andDo(MockMvcResultHandlers.print());
+		MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.get("/short-url/redirect-count?shorteningKey=1"))
+				.andExpect(MockMvcResultMatchers.status().isOk())
+				.andDo(MockMvcResultHandlers.print())
+				.andReturn();
 
-		// When
-
-		// Then
+		ObjectMapper mapper = new ObjectMapper();
+		GetShortUrlRedirectCountResponseDTO getShortUrlRedirectCountResponseDTO = mapper.readValue(mvcResult.getResponse().getContentAsString(), GetShortUrlRedirectCountResponseDTO.class);
+		GetShortUrlRedirectCountResponseDTO correct = new GetShortUrlRedirectCountResponseDTO();
+		correct.setCode(0);
+		assertEquals(getShortUrlRedirectCountResponseDTO.getCode(), correct.getCode());
+		assertEquals(getShortUrlRedirectCountResponseDTO.getRedirectCount(), correct.getRedirectCount());
 	}
 
-	@Test
-	void GetShortUrlTest() {
-		// Given
+	@Test // 동일한 URL에 대한 요청은 동일한 Shortening Key로 응답하는지 테스트.
+	void givenCreateShortUrlMusinsa_whenCreateShortUrlMultiple_thenSuccess() throws Exception {
+		mockMvc.perform(MockMvcRequestBuilders.post("/short-url").content("{\"url\":\"https://store.musinsa.com/\"}").contentType("application/json"))
+				.andExpect(MockMvcResultMatchers.status().isOk())
+				.andDo(MockMvcResultHandlers.print());
+		MvcResult firstShortUrlResult = mockMvc.perform(MockMvcRequestBuilders.post("/short-url").content("{\"url\":\"https://wndrlf2003.blog.me\"}").contentType("application/json"))
+				.andExpect(MockMvcResultMatchers.status().isOk())
+				.andDo(MockMvcResultHandlers.print())
+				.andReturn();
+		MvcResult secondShortUrlResult = mockMvc.perform(MockMvcRequestBuilders.post("/short-url").content("{\"url\":\"https://wndrlf2003.blog.me\"}").contentType("application/json"))
+				.andExpect(MockMvcResultMatchers.status().isOk())
+				.andDo(MockMvcResultHandlers.print())
+				.andReturn();
 
-		// When
-
-		// Then
-	}
-
-	@Test
-	void AddExistShorteningKeyTest() {
-		// Given
-
-		// When
-
-		// Then
+		ObjectMapper mapper = new ObjectMapper();
+		CreateShortUrlResponseDTO firstResponseDTO = mapper.readValue(firstShortUrlResult.getResponse().getContentAsString(), CreateShortUrlResponseDTO.class);
+		CreateShortUrlResponseDTO secondResponseDTO = mapper.readValue(secondShortUrlResult.getResponse().getContentAsString(), CreateShortUrlResponseDTO.class);
+		assertEquals(firstResponseDTO.getCode(), secondResponseDTO.getCode());
+		assertEquals(firstResponseDTO.getShortUrl(), secondResponseDTO.getShortUrl());
+		assertEquals(firstResponseDTO.getRedirectCount(), secondResponseDTO.getRedirectCount());
 	}
 }
