@@ -35,7 +35,7 @@ public class ShortUrlController {
 
     @RequestMapping(value = "/short-url/redirect-count", method = RequestMethod.GET)
     @ApiOperation(value="shorteningKey 로 연결 횟수 조회", notes="shorteningKey 로 조회된 횟수를 가져온다.")
-    public GetShortUrlRedirectCountResponseDTO GetShortUrl(HttpServletResponse response, @RequestParam String shorteningKey) {
+    public GetShortUrlRedirectCountResponseDTO GetShortUrl(@RequestParam String shorteningKey) {
         return shortUrlService.FindShortUrlRedirectCount(shorteningKey);
     }
 }
