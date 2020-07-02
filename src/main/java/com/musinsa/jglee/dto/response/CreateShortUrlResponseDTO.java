@@ -1,7 +1,11 @@
 package com.musinsa.jglee.dto.response;
 
+import io.swagger.annotations.ApiModelProperty;
+
 public class CreateShortUrlResponseDTO extends GlobalReturnDTO {
+    @ApiModelProperty(required = true, notes = "변환된 short url")
     private String shortUrl;
+    @ApiModelProperty(required = true, notes = "redirect 된 횟수")
     private long redirectCount = 0;
 
 
