@@ -21,13 +21,13 @@ public class ShortUrlService {
         this.shortUrlDAO = shortUrlDAO;
     }
 
-    public CreateShortUrlResponseDTO GenerateShortUrl(String url) {
+    public CreateShortUrlResponseDTO generateShortUrl(String url) {
         CreateShortUrlResponseDTO createShortUrlResponseDTO = new CreateShortUrlResponseDTO();
 
         ShortUrl shortUrl = shortUrlDAO.findShortUrlByUrl(url);
         if (shortUrl == null) {
             try {
-                shortUrl = this.SaveShortUrl(url);
+                shortUrl = this.saveShortUrl(url);
             } catch (Exception e) {
                 createShortUrlResponseDTO.setCode(-1);
                 createShortUrlResponseDTO.setShortUrl(null);
@@ -41,10 +41,10 @@ public class ShortUrlService {
     }
 
     @Transactional
-    public ShortUrl SaveShortUrl(String url) throws Exception {
+    public ShortUrl saveShortUrl(String url) throws Exception {
         ShortUrl shortUrl = new ShortUrl(url, null);
         ShortUrl resultShortUrl = shortUrlDAO.save(shortUrl);
-        String shorteningKey = this.CreateShorteningKey(resultShortUrl.getId());
+        String shorteningKey = this.createShorteningKey(resultShortUrl.getId());
         if (shorteningKey.length() > 8) {
             throw new Exception();
         }
@@ -53,7 +53,7 @@ public class ShortUrlService {
         return shortUrl;
     }
 
-    public String CreateShorteningKey(long index) {
+    public String createShorteningKey(long index) {
         Base62 base62 = Base62.createInstance();
 
         ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
@@ -65,7 +65,7 @@ public class ShortUrlService {
     }
 
     @Transactional()
-    public String FindShortUrl(String shorteningKey) {
+    public String findShortUrl(String shorteningKey) {
         ShortUrl shortUrl = shortUrlDAO.findShortUrlByShorteningKey(shorteningKey);
         if (shortUrl == null) {
             return null;
@@ -77,7 +77,7 @@ public class ShortUrlService {
         return shortUrl.getUrl();
     }
 
-    public GetShortUrlRedirectCountResponseDTO FindShortUrlRedirectCount(String shorteningKey) {
+    public GetShortUrlRedirectCountResponseDTO findShortUrlRedirectCount(String shorteningKey) {
         GetShortUrlRedirectCountResponseDTO response = new GetShortUrlRedirectCountResponseDTO();
         ShortUrl shortUrl = shortUrlDAO.findShortUrlByShorteningKey(shorteningKey);
         if (shortUrl == null) {
