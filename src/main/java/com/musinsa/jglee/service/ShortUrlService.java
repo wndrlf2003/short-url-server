@@ -2,6 +2,7 @@ package com.musinsa.jglee.service;
 
 import com.musinsa.jglee.dao.ShortUrlDAO;
 import com.musinsa.jglee.dto.response.CreateShortUrlResponseDTO;
+import com.musinsa.jglee.dto.response.GetShortUrlRedirectCountResponseDTO;
 import com.musinsa.jglee.schema.ShortUrl;
 import io.seruco.encoding.base62.Base62;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,5 +75,17 @@ public class ShortUrlService {
         shortUrl = shortUrlDAO.save(shortUrl);
 
         return shortUrl.getUrl();
+    }
+
+    public GetShortUrlRedirectCountResponseDTO FindShortUrlRedirectCount(String shorteningKey) {
+        GetShortUrlRedirectCountResponseDTO response = new GetShortUrlRedirectCountResponseDTO();
+        ShortUrl shortUrl = shortUrlDAO.findShortUrlByShorteningKey(shorteningKey);
+        if (shortUrl == null) {
+            response.setCode(-1);
+        } else {
+            response.setRedirectCount(shortUrl.getRedirectCount());
+        }
+
+        return response;
     }
 }

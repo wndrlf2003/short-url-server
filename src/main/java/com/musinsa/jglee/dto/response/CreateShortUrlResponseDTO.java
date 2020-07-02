@@ -1,17 +1,9 @@
 package com.musinsa.jglee.dto.response;
 
-public class CreateShortUrlResponseDTO {
-    private int code;
+public class CreateShortUrlResponseDTO extends GlobalReturnDTO {
     private String shortUrl;
     private long redirectCount = 0;
 
-    public int getCode() {
-        return code;
-    }
-
-    public void setCode(int code) {
-        this.code = code;
-    }
 
     public String getShortUrl() {
         return shortUrl;
